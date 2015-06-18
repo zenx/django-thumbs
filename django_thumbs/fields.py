@@ -11,7 +11,7 @@ except:
 
 from django.db.models import ImageField
 from django.db.models.fields.files import ImageFieldFile
-from .utils import generate_thumbmail
+from .utils import generate_thumbnail
 
 
 class ImageWithThumbsFieldFile(ImageFieldFile):
