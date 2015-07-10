@@ -37,8 +37,8 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
             except:
                 # s3 storage and other storages problem
                 pass
-        if not getattr(self.field, ''):
-            self.thumbnail_function = generate_thumbnail
+        # get the custom thumbnailing function if available or use the default one
+        self.thumbnail_function = getattr(self.field, 'thumbnail_function', generate_thumbnail)
 
     def save(self, name, content, save=True):
         super(ImageWithThumbsFieldFile, self).save(name, content, save)
