@@ -1,0 +1,7 @@
+# Project
+build/
+dist/
+django_thumbs.egg-info/
+
+# IDE Files
+.idea/
