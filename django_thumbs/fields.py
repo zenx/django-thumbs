@@ -4,17 +4,23 @@
     http://antoniomele.es
     http://django.es
 """
+try:
+    from io import StringIO
+except:
+    from cStringIO import StringIO
+
 from django.db.models import ImageField
 from django.db.models.fields.files import ImageFieldFile
-from django_thumbs.utils import generate_thumb
+from .utils import generate_thumbnail
+
 
 class ImageWithThumbsFieldFile(ImageFieldFile):
     """
-    See ImageWithThumbsField for usage example
+    See ImageWithThumbsField for usage example.
     """
     def __init__(self, *args, **kwargs):
         super(ImageWithThumbsFieldFile, self).__init__(*args, **kwargs)
-        
+
         if self.field.sizes:
             def get_size(self, size):
                 if not self:
@@ -23,7 +29,7 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
                     split = self.url.rsplit('.',1)
                     thumb_url = '%s.%sx%s.%s' % (split[0],w,h,split[1])
                     return thumb_url
-                    
+
             try:
                 for size in self.field.sizes:
                     (w,h) = size
@@ -31,17 +37,19 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
             except:
                 # s3 storage and other storages problem
                 pass
-                
+        # get the custom thumbnailing function if available or use the default one
+        self.thumbnail_function = getattr(self.field, 'thumbnail_function', generate_thumbnail)
+
     def save(self, name, content, save=True):
         super(ImageWithThumbsFieldFile, self).save(name, content, save)
         if self.field.sizes:
             self.create_thumbs(content=content)
-    
+
     def delete(self, save=True):
         name=self.name
         self.delete_thumbs()
         super(ImageWithThumbsFieldFile, self).delete(save)
-    
+
     def create_thumbs(self, content=None, sizes=None, method='new'):
         """
             method can be:
@@ -50,12 +58,11 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
                 regenerate  All thumbs will be regenerated (overwirtes all existing thumbnails)
         """
         if content == None:
-            import StringIO
-            content = StringIO.StringIO(self.storage.open(self.name).read())
-        
+            content = StringIO(self.storage.open(self.name).read())
+
         if sizes == None:
             sizes = self.field.sizes
-        
+
         if sizes:
             for size in sizes:
                 (w,h) = size
@@ -75,17 +82,16 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
                 
                 if not self.storage.exists(thumb_name):
                     # you can use another thumbnailing function if you like but it has to return a ContentFile object with the thumbnail
-                    thumb_content = generate_thumb(content, size, split[1])
+                    thumb_content = self.thumbnail_function(content, size, split[1])
                     thumb_name_ = self.storage.save(thumb_name, thumb_content)    
                         
                     """
                         if not thumb_name == thumb_name_:
                             raise ValueError('There is already a file named %s' % thumb_name)
                     """
-    
+
     def delete_thumbs(self, sizes=None):
         # deletes thumbnails of the desired sizes
-        
         if sizes==None:
             # if not sizes given delete thumbnails of ALL sizes
             sizes = self.field.sizes
@@ -99,8 +105,8 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
                     self.storage.delete(thumb_name)
                 except:
                     pass
-    
-                        
+
+
 class ImageWithThumbsField(ImageField):
     attr_class = ImageWithThumbsFieldFile
     """
