@@ -68,23 +68,15 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
                 # for example: 180x.jpg or x180.jpg or 200x180.jpg
                 thumb_name = '%s.%sx%s.%s' % (split[0],w,h,split[1])
                 
-                if method == 'regenerate':
-                    if self.storage.exists(thumb_name):
-                        self.delete(thumb_name)
-                        
-                elif method == 'new':
-                    if self.storage.exists(thumb_name):
-                        raise ValueError('There is already a file named %s' % thumb_name)
+                thumb_exists = self.storage.exists(thumb_name)
                 
-                if not self.storage.exists(thumb_name):
+                if method == 'regenerate' and thumb_exists:
+                    self.delete(thumb_name)
+                
+                if not thumb_exists:
                     # you can use another thumbnailing function if you like but it has to return a ContentFile object with the thumbnail
                     thumb_content = self.thumbnail_function(content, size, split[1])
                     thumb_name_ = self.storage.save(thumb_name, thumb_content)    
-                        
-                    """
-                        if not thumb_name == thumb_name_:
-                            raise ValueError('There is already a file named %s' % thumb_name)
-                    """
 
     def delete_thumbs(self, sizes=None):
         # deletes thumbnails of the desired sizes
