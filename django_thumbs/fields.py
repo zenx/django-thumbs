@@ -39,7 +39,7 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
     def save(self, name, content, save=True):
         super(ImageWithThumbsFieldFile, self).save(name, content, save)
         if self.field.sizes:
-            self.create_thumbs(content=content)
+            self.create_thumbs()
 
     def delete(self, save=True):
         name=self.name
