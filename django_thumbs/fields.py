@@ -4,11 +4,7 @@
     http://antoniomele.es
     http://django.es
 """
-try:
-    from io import StringIO
-except:
-    from cStringIO import StringIO
-
+import io
 from django.db.models import ImageField
 from django.db.models.fields.files import ImageFieldFile
 from .utils import generate_thumbnail
@@ -58,7 +54,7 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
                 regenerate  All thumbs will be regenerated (overwirtes all existing thumbnails)
         """
         if content == None:
-            content = StringIO(self.storage.open(self.name).read())
+            content = io.BytesIO(self.storage.open(self.name, 'rb').read())
 
         if sizes == None:
             sizes = self.field.sizes
