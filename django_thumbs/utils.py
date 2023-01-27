@@ -26,7 +26,7 @@ def generate_thumbnail(img, thumb_size, format):
                 (this format will be used for the generated thumbnail, too)
     """
     
-    img.seek(0) # see http://code.djangoproject.com/ticket/8222 for details
+    # img.seek(0) # see http://code.djangoproject.com/ticket/8222 for details
     image = Image.open(img)
     
     # convert to RGB if necessary
